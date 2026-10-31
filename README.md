@@ -63,7 +63,7 @@ The Broadcast Channel API enables communication between same-origin tabs without
 
 When updates arrive, the application merges settings individually using their version counters. If two versions have the same counter, the tab identifier provides a deterministic tie-breaker. This helps tabs converge on the same setting values.
 
-The application reads saved preferences during initialization so previously selected settings can be restored when it is reopened.
+The HTML head reads and applies saved preferences before React starts, preventing a newly opened tab from briefly showing the wrong theme. React then loads the same validated settings into its initial state.
 
 ## Testing Checklist
 
@@ -78,7 +78,6 @@ The application reads saved preferences during initialization so previously sele
 ## Future Improvements
 
 * Add automated tests for synchronization and conflict resolution.
-* Improve initialization to prevent any initial theme flash.
 * Deploy the application so it can be accessed online.
 
 ## Author

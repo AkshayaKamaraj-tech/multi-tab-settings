@@ -4,6 +4,34 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem('syncspace-settings') || 'null'
+        );
+
+        if (saved?.theme?.value === 'dark' || saved?.theme?.value === 'light') {
+          document.documentElement.dataset.theme = saved.theme.value;
+        }
+
+        if (
+          Number.isFinite(saved?.fontSize?.value) &&
+          saved.fontSize.value >= 12 &&
+          saved.fontSize.value <= 28
+        ) {
+          document.documentElement.style.setProperty(
+            '--base-font-size',
+            `${saved.fontSize.value}px`
+          );
+        }
+
+        if (typeof saved?.language?.value === 'string') {
+          document.documentElement.lang = saved.language.value;
+        }
+      } catch {
+        // React will fall back to the default settings if storage is unavailable.
+      }
+    </script>
     <title>multi-tab-settings</title>
   </head>
   <body>

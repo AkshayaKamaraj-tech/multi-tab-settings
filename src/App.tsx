@@ -17,7 +17,18 @@ type Settings = {
   fontSize: Setting<number>;
 };
 
+type LogEntry = {
+  id: string;
+  time: string;
+  text: string;
+  source: 'local' | 'remote';
+  latency?: number;
+};
+
 const STORAGE_KEY = 'syncspace-settings';
+const CHANNEL_NAME = 'syncspace-channel';
+const SETTING_KEYS = ['theme', 'language', 'fontSize'] as const;
+const MAX_LOG_ENTRIES = 6;
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -40,8 +51,7 @@ const translations = {
     language: 'Language',
     languageDescription: 'Choose your preferred language.',
     fontSize: 'Font size',
-    fontSizeDescription:
-      'Adjust text size for comfortable reading.',
+    fontSizeDescription: 'Adjust text size for comfortable reading.',
     small: 'Small',
     large: 'Large',
     bannerTitle: 'Your settings travel with you.',
@@ -49,6 +59,11 @@ const translations = {
       'Change a preference in one tab and watch it update in your other open tabs.',
     footer: 'Preferences saved automatically',
     sync: 'Live Sync Enabled',
+    activity: 'Live activity',
+    activityDescription: 'Recent changes, with the time they happened.',
+    noChanges: 'No changes yet.',
+    changedHere: 'changed here',
+    syncedFromTab: 'synced from another tab',
   },
 
   ta: {
@@ -75,6 +90,11 @@ const translations = {
       'ஒரு தாவலில் மாற்றம் செய்தால், மற்ற திறந்த தாவல்களிலும் அது புதுப்பிக்கப்படும்.',
     footer: 'விருப்பங்கள் தானாகச் சேமிக்கப்படும்',
     sync: 'நேரடி ஒத்திசைவு இயங்குகிறது',
+    activity: 'நேரடி செயல்பாடு',
+    activityDescription: 'சமீபத்திய மாற்றங்கள், நேரத்துடன்.',
+    noChanges: 'இன்னும் மாற்றங்கள் இல்லை.',
+    changedHere: 'இங்கே மாற்றப்பட்டது',
+    syncedFromTab: 'மற்றொரு தாவலிலிருந்து ஒத்திசைந்தது',
   },
 
   hi: {
@@ -83,16 +103,13 @@ const translations = {
     description:
       'अपने अनुभव को अपनी पसंद के अनुसार बनाएँ। आपकी सेटिंग्स सभी टैब में अपने आप सिंक होती हैं।',
     appearance: 'रूप',
-    appearanceDescription:
-      'SyncSpace को अपनी पसंद के अनुसार बनाएँ।',
+    appearanceDescription: 'SyncSpace को अपनी पसंद के अनुसार बनाएँ।',
     darkMode: 'डार्क मोड',
-    darkModeDescription:
-      'लाइट और डार्क थीम के बीच बदलें।',
+    darkModeDescription: 'लाइट और डार्क थीम के बीच बदलें।',
     language: 'भाषा',
     languageDescription: 'अपनी पसंदीदा भाषा चुनें।',
     fontSize: 'फ़ॉन्ट का आकार',
-    fontSizeDescription:
-      'आसानी से पढ़ने के लिए टेक्स्ट का आकार बदलें।',
+    fontSizeDescription: 'आसानी से पढ़ने के लिए टेक्स्ट का आकार बदलें।',
     small: 'छोटा',
     large: 'बड़ा',
     bannerTitle: 'आपकी सेटिंग्स आपके साथ रहती हैं।',
@@ -100,6 +117,11 @@ const translations = {
       'एक टैब में बदलाव करें और उसे दूसरे खुले टैब में भी देखें।',
     footer: 'सेटिंग्स अपने आप सेव होती हैं',
     sync: 'लाइव सिंक चालू है',
+    activity: 'लाइव गतिविधि',
+    activityDescription: 'हाल के बदलाव, समय के साथ।',
+    noChanges: 'अभी तक कोई बदलाव नहीं।',
+    changedHere: 'यहाँ बदला गया',
+    syncedFromTab: 'दूसरे टैब से सिंक हुआ',
   },
 
   fr: {
@@ -108,14 +130,11 @@ const translations = {
     description:
       'Personnalisez votre expérience. Vos préférences se synchronisent automatiquement entre les onglets.',
     appearance: 'Apparence',
-    appearanceDescription:
-      'Personnalisez SyncSpace selon vos goûts.',
+    appearanceDescription: 'Personnalisez SyncSpace selon vos goûts.',
     darkMode: 'Mode sombre',
-    darkModeDescription:
-      'Passez du thème clair au thème sombre.',
+    darkModeDescription: 'Passez du thème clair au thème sombre.',
     language: 'Langue',
-    languageDescription:
-      'Choisissez votre langue préférée.',
+    languageDescription: 'Choisissez votre langue préférée.',
     fontSize: 'Taille du texte',
     fontSizeDescription:
       'Ajustez la taille du texte pour lire confortablement.',
@@ -126,6 +145,11 @@ const translations = {
       'Modifiez une préférence dans un onglet et retrouvez-la dans les autres.',
     footer: 'Préférences enregistrées automatiquement',
     sync: 'Synchronisation active',
+    activity: 'Activité en direct',
+    activityDescription: "Changements récents, avec l'heure.",
+    noChanges: 'Aucun changement pour le moment.',
+    changedHere: 'modifié ici',
+    syncedFromTab: 'synchronisé depuis un autre onglet',
   },
 
   es: {
@@ -134,17 +158,13 @@ const translations = {
     description:
       'Personaliza tu experiencia. Tus preferencias se sincronizan automáticamente entre pestañas.',
     appearance: 'Apariencia',
-    appearanceDescription:
-      'Personaliza SyncSpace a tu gusto.',
+    appearanceDescription: 'Personaliza SyncSpace a tu gusto.',
     darkMode: 'Modo oscuro',
-    darkModeDescription:
-      'Cambia entre los temas claro y oscuro.',
+    darkModeDescription: 'Cambia entre los temas claro y oscuro.',
     language: 'Idioma',
-    languageDescription:
-      'Elige tu idioma preferido.',
+    languageDescription: 'Elige tu idioma preferido.',
     fontSize: 'Tamaño de fuente',
-    fontSizeDescription:
-      'Ajusta el tamaño del texto para leer cómodamente.',
+    fontSizeDescription: 'Ajusta el tamaño del texto para leer cómodamente.',
     small: 'Pequeño',
     large: 'Grande',
     bannerTitle: 'Tu configuración va contigo.',
@@ -152,6 +172,11 @@ const translations = {
       'Cambia una preferencia en una pestaña y verás el cambio en las demás.',
     footer: 'Preferencias guardadas automáticamente',
     sync: 'Sincronización activa',
+    activity: 'Actividad en vivo',
+    activityDescription: 'Cambios recientes, con la hora.',
+    noChanges: 'Aún no hay cambios.',
+    changedHere: 'cambiado aquí',
+    syncedFromTab: 'sincronizado desde otra pestaña',
   },
 };
 
@@ -192,13 +217,10 @@ function isValidSettings(data: unknown): data is Settings {
     validSetting(item.theme) &&
     validSetting(item.language) &&
     validSetting(item.fontSize) &&
-    ['light', 'dark'].includes(
-      (item.theme as Setting<string>).value
-    ) &&
+    ['light', 'dark'].includes((item.theme as Setting<string>).value) &&
     LANGUAGES.some(
       (language) =>
-        language.code ===
-        (item.language as Setting<string>).value
+        language.code === (item.language as Setting<string>).value
     ) &&
     typeof (item.fontSize as Setting<number>).value === 'number' &&
     Number.isFinite((item.fontSize as Setting<number>).value) &&
@@ -253,8 +275,7 @@ function mergeSettings(a: Settings, b: Settings): Settings {
 }
 
 function applySettings(settings: Settings) {
-  document.documentElement.dataset.theme =
-    settings.theme.value;
+  document.documentElement.dataset.theme = settings.theme.value;
 
   document.documentElement.style.setProperty(
     '--base-font-size',
@@ -262,6 +283,28 @@ function applySettings(settings: Settings) {
   );
 
   document.documentElement.lang = settings.language.value;
+}
+
+/** Keys whose *value* differs between two settings objects. */
+function changedKeys(before: Settings, after: Settings) {
+  return SETTING_KEYS.filter((k) => before[k].value !== after[k].value);
+}
+
+function makeEntries(
+  keys: readonly (keyof Settings)[],
+  next: Settings,
+  source: 'local' | 'remote',
+  latency?: number
+): LogEntry[] {
+  const time = new Date().toLocaleTimeString();
+
+  return keys.map((k) => ({
+    id: crypto.randomUUID(),
+    time,
+    text: `${k} → ${next[k].value}`,
+    source,
+    latency,
+  }));
 }
 
 function App() {
@@ -273,31 +316,45 @@ function App() {
     return initial;
   });
 
+  const [log, setLog] = useState<LogEntry[]>([]);
+
   const settingsRef = useRef(settings);
 
   useEffect(() => {
     const channel =
       typeof BroadcastChannel !== 'undefined'
-        ? new BroadcastChannel('syncspace-channel')
+        ? new BroadcastChannel(CHANNEL_NAME)
         : null;
 
-    function receiveSettings(incoming: unknown) {
+    function receiveSettings(incoming: unknown, sentAt?: number) {
       if (!isValidSettings(incoming)) return;
 
-      const merged = mergeSettings(
-        settingsRef.current,
-        incoming
-      );
+      const before = settingsRef.current;
+      const merged = mergeSettings(before, incoming);
+      const changed = changedKeys(before, merged);
 
       settingsRef.current = merged;
       setSettings(merged);
       applySettings(merged);
 
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(merged)
+      // Only log when a value really changed, so the duplicate delivery
+      // (BroadcastChannel + storage event) doesn't create two log lines.
+      if (changed.length > 0) {
+        const latency =
+          typeof sentAt === 'number'
+            ? Math.max(0, Date.now() - sentAt)
+            : undefined;
+
+        setLog((prev) =>
+          [...makeEntries(changed, merged, 'remote', latency), ...prev].slice(
+            0,
+            MAX_LOG_ENTRIES
+          )
         );
+      }
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
       } catch {
         console.warn('Could not save settings.');
       }
@@ -316,7 +373,7 @@ function App() {
     }
 
     function handleBroadcast(event: MessageEvent) {
-      receiveSettings(event.data);
+      receiveSettings(event.data?.settings, event.data?.sentAt);
     }
 
     channel?.addEventListener('message', handleBroadcast);
@@ -333,10 +390,9 @@ function App() {
     key: K,
     value: Settings[K]['value']
   ) {
-    const latest = mergeSettings(
-      settingsRef.current,
-      readSettings()
-    );
+    const latest = mergeSettings(settingsRef.current, readSettings());
+
+    if (latest[key].value === value) return;
 
     const highestCounter = Math.max(
       latest.theme.version.counter,
@@ -361,19 +417,25 @@ function App() {
     setSettings(next);
     applySettings(next);
 
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(next)
-      );
-    } catch {
-      console.warn('Could not save settings.');
+    setLog((prev) =>
+      [...makeEntries([key], next, 'local'), ...prev].slice(
+        0,
+        MAX_LOG_ENTRIES
+      )
+    );
+
+    // Broadcast first (fastest path, carries a timestamp for latency),
+    // then persist.
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel(CHANNEL_NAME);
+      channel.postMessage({ settings: next, sentAt: Date.now() });
+      channel.close();
     }
 
-    if (typeof BroadcastChannel !== 'undefined') {
-      const channel = new BroadcastChannel('syncspace-channel');
-      channel.postMessage(next);
-      channel.close();
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      console.warn('Could not save settings.');
     }
   }
 
@@ -425,12 +487,7 @@ function App() {
               role="switch"
               aria-checked={isDark}
               aria-label={t.darkMode}
-              onClick={() =>
-                updateSetting(
-                  'theme',
-                  isDark ? 'light' : 'dark'
-                )
-              }
+              onClick={() => updateSetting('theme', isDark ? 'light' : 'dark')}
             >
               <span className="toggle-knob" />
             </button>
@@ -453,10 +510,7 @@ function App() {
               aria-label={t.language}
             >
               {LANGUAGES.map((language) => (
-                <option
-                  key={language.code}
-                  value={language.code}
-                >
+                <option key={language.code} value={language.code}>
                   {language.name}
                 </option>
               ))}
@@ -472,9 +526,7 @@ function App() {
               </div>
             </div>
 
-            <span className="font-value">
-              {settings.fontSize.value}px
-            </span>
+            <span className="font-value">{settings.fontSize.value}px</span>
           </div>
 
           <input
@@ -485,10 +537,7 @@ function App() {
             step="1"
             value={settings.fontSize.value}
             onChange={(event) =>
-              updateSetting(
-                'fontSize',
-                Number(event.target.value)
-              )
+              updateSetting('fontSize', Number(event.target.value))
             }
             aria-label={t.fontSize}
           />
@@ -506,6 +555,31 @@ function App() {
             <p>{t.bannerDescription}</p>
           </div>
         </div>
+
+        <section className="settings-card">
+          <div className="section-heading">
+            <div>
+              <h2>{t.activity}</h2>
+              <p>{t.activityDescription}</p>
+            </div>
+          </div>
+
+          <ul className="activity-list" aria-live="polite">
+            {log.length === 0 && <li>{t.noChanges}</li>}
+            {log.map((entry) => (
+              <li key={entry.id}>
+                <strong>{entry.time}</strong> · {entry.text} ·{' '}
+                {entry.source === 'local'
+                  ? t.changedHere
+                  : `${t.syncedFromTab}${
+                      entry.latency !== undefined
+                        ? ` (${entry.latency} ms)`
+                        : ''
+                    }`}
+              </li>
+            ))}
+          </ul>
+        </section>
 
         <footer className="page-footer">
           <span>SyncSpace</span>
